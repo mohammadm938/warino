@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Package } from "lucide-react";
 
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
-import ProductFilters from "./components/ProductFilters";
-import ProductGrid from "./components/ProductGrid";
+import ProductBrowser from "./components/ProductBrowser";
 
 import { products } from "../data/mockData";
 
@@ -29,28 +28,22 @@ export default function ProductsPage() {
 
           {/* Heading */}
           <div className="mb-8">
-            <p className="mb-2 text-sm font-bold text-violet-600">کشف کن</p>
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-600">
+              <Package className="h-6 w-6" />
+            </div>
 
             <h1 className="text-3xl font-black text-gray-900 sm:text-4xl">
               همه محصولات
             </h1>
 
-            <p className="mt-3 text-sm leading-7 text-gray-500">
-              محصولات جذاب فروشگاه‌های اینستاگرامی را پیدا کن.
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-500 sm:text-base">
+              بین محصولات فروشگاه‌های مختلف بگرد، مقایسه کن و چیزی که دوست داری
+              پیدا کن.
             </p>
           </div>
 
-          <ProductFilters />
-
-          {/* Result count */}
-          <div className="mb-5 flex items-center justify-between">
-            <p className="text-sm text-gray-500">
-              <span className="font-bold text-gray-900">{products.length}</span>{" "}
-              محصول پیدا شد
-            </p>
-          </div>
-
-          <ProductGrid products={products} />
+          {/* Product Browser */}
+          <ProductBrowser products={products} />
         </div>
       </main>
 

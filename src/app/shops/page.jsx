@@ -4,8 +4,7 @@ import { ArrowRight, Store } from "lucide-react";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
-import ShopFilters from "./components/ShopFilters";
-import ShopGrid from "./components/ShopGrid";
+import ShopBrowser from "./components/ShopBrowser";
 
 import { shops } from "../data/mockData";
 
@@ -43,19 +42,8 @@ export default function ShopsPage() {
             </p>
           </div>
 
-          {/* Filters */}
-          <ShopFilters />
-
-          {/* Count */}
-          <div className="mb-5">
-            <p className="text-sm text-gray-500">
-              <span className="font-bold text-gray-900">{shops.length}</span>{" "}
-              فروشگاه در وارینو
-            </p>
-          </div>
-
-          {/* Grid */}
-          <ShopGrid shops={shops} />
+          {/* Browser */}
+          <ShopBrowser shops={shops} />
         </div>
       </main>
 
