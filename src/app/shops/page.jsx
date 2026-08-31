@@ -6,7 +6,7 @@ import Footer from "../components/layout/Footer";
 
 import ShopBrowser from "./components/ShopBrowser";
 
-import { shops } from "../data/mockData";
+import { shops } from "../data/shops";
 
 export default function ShopsPage() {
   return (

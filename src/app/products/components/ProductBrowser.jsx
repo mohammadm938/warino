@@ -5,14 +5,8 @@ import { Search, SlidersHorizontal, PackageSearch } from "lucide-react";
 
 import ProductGrid from "./ProductGrid";
 
-const categories = [
-  "همه",
-  "زیورآلات",
-  "اکسسوری",
-  "ساعت",
-  "پوشاک",
-  "خانه و دکور",
-];
+import { shops } from "../../data/shops";
+import { categories } from "../../data/categories";
 
 const sortOptions = [
   {
@@ -31,25 +25,54 @@ const sortOptions = [
 
 export default function ProductBrowser({ products }) {
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("همه");
+  const [selectedCategory, setSelectedCategory] = useState("همه");
   const [sort, setSort] = useState("default");
 
   const filteredProducts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
+    const selectedCategoryObject = categories.find(
+      (category) => category.name === selectedCategory,
+    );
+
     let result = products.filter((product) => {
+      const shop = shops.find((item) => item.id === product.shopId);
+
+      const category = categories.find(
+        (item) => item.id === product.categoryId,
+      );
+
+      const productTitle = product.title?.toLowerCase() || "";
+
+      const shopName = shop?.name?.toLowerCase() || "";
+
+      const shopUsername = shop?.username?.toLowerCase() || "";
+
+      const categoryName = category?.name?.toLowerCase() || "";
+
+      /*
+       * Search
+       */
       const matchesSearch =
         normalizedSearch === "" ||
-        product.title.toLowerCase().includes(normalizedSearch) ||
-        product.shop.toLowerCase().includes(normalizedSearch) ||
-        product.category.toLowerCase().includes(normalizedSearch);
+        productTitle.includes(normalizedSearch) ||
+        shopName.includes(normalizedSearch) ||
+        shopUsername.includes(normalizedSearch) ||
+        categoryName.includes(normalizedSearch);
 
+      /*
+       * Category
+       */
       const matchesCategory =
-        category === "همه" || product.category === category;
+        selectedCategory === "همه" ||
+        product.categoryId === selectedCategoryObject?.id;
 
       return matchesSearch && matchesCategory;
     });
 
+    /*
+     * Sorting
+     */
     if (sort === "price-low") {
       result = [...result].sort((a, b) => a.price - b.price);
     }
@@ -59,13 +82,14 @@ export default function ProductBrowser({ products }) {
     }
 
     return result;
-  }, [products, search, category, sort]);
+  }, [products, search, selectedCategory, sort]);
 
-  const hasFilters = search !== "" || category !== "همه" || sort !== "default";
+  const hasFilters =
+    search.trim() !== "" || selectedCategory !== "همه" || sort !== "default";
 
   const clearFilters = () => {
     setSearch("");
-    setCategory("همه");
+    setSelectedCategory("همه");
     setSort("default");
   };
 
@@ -84,7 +108,7 @@ export default function ProductBrowser({ products }) {
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="نام محصول یا فروشگاه را جستجو کن..."
+                placeholder="نام محصول، فروشگاه یا دسته‌بندی را جستجو کن..."
                 className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm outline-none transition placeholder:text-gray-400 focus:border-violet-400 focus:bg-white"
               />
             </div>
@@ -107,21 +131,33 @@ export default function ProductBrowser({ products }) {
           <div className="flex items-center gap-2 overflow-x-auto border-t border-gray-100 pt-4">
             <SlidersHorizontal className="ml-2 h-5 w-5 shrink-0 text-gray-400" />
 
-            {categories.map((item) => {
-              const isActive = category === item;
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("همه")}
+              className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                selectedCategory === "همه"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-50 text-gray-600 hover:bg-violet-50 hover:text-violet-600"
+              }`}
+            >
+              همه
+            </button>
+
+            {categories.map((category) => {
+              const isActive = selectedCategory === category.name;
 
               return (
                 <button
-                  key={item}
+                  key={category.id}
                   type="button"
-                  onClick={() => setCategory(item)}
+                  onClick={() => setSelectedCategory(category.name)}
                   className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                     isActive
                       ? "bg-gray-900 text-white"
                       : "bg-gray-50 text-gray-600 hover:bg-violet-50 hover:text-violet-600"
                   }`}
                 >
-                  {item}
+                  {category.name}
                 </button>
               );
             })}
@@ -129,7 +165,7 @@ export default function ProductBrowser({ products }) {
         </div>
       </div>
 
-      {/* Results header */}
+      {/* Results Header */}
       <div className="mb-5 flex items-center justify-between gap-4">
         <p className="text-sm text-gray-500">
           <span className="font-bold text-gray-900">

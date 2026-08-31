@@ -6,7 +6,7 @@ import Footer from "../components/layout/Footer";
 
 import ProductBrowser from "./components/ProductBrowser";
 
-import { products } from "../data/mockData";
+import { products } from "../data/products";
 
 export default function ProductsPage() {
   return (

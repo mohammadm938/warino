@@ -23,7 +23,7 @@ export default function ShopGrid({ shops }) {
           {/* Info */}
           <div className="mt-5">
             <Link
-              href={`/shops/${shop.id}`}
+              href={`/shops/${shop.slug}`}
               className="text-lg font-black text-gray-900 transition hover:text-violet-600"
             >
               {shop.name}
@@ -52,7 +52,7 @@ export default function ShopGrid({ shops }) {
           {/* Actions */}
           <div className="mt-5 flex gap-2">
             <Link
-              href={`/shops/${shop.id}`}
+              href={`/shops/${shop.slug}`}
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition hover:bg-violet-600"
             >
               مشاهده فروشگاه

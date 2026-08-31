@@ -13,16 +13,16 @@ import {
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 
-import { products } from "../../data/mockData";
+import { products } from "../../data/products";
+import { shops } from "../../data/shops";
 
 function formatPrice(price) {
   return new Intl.NumberFormat("fa-IR").format(price);
 }
 
 export default async function ProductPage({ params }) {
-  const { id } = await params;
-
-  const product = products.find((item) => item.id === Number(id));
+  const { slug } = await params;
+  const product = products.find((item) => item.slug === slug);
 
   if (!product) {
     return (
@@ -57,6 +57,8 @@ export default async function ProductPage({ params }) {
     );
   }
 
+  const shop = shops.find((item) => item.id === product.shopId);
+
   return (
     <>
       <Header />
@@ -80,7 +82,6 @@ export default async function ProductPage({ params }) {
             <span className="font-medium text-gray-700">{product.title}</span>
           </div>
 
-          {/* Product */}
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Image */}
             <div className="relative overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm">
@@ -100,7 +101,7 @@ export default async function ProductPage({ params }) {
                 </button>
 
                 <span className="absolute right-5 top-5 rounded-full bg-white/95 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm">
-                  {product.category}
+                  محصول
                 </span>
               </div>
             </div>
@@ -118,11 +119,9 @@ export default async function ProductPage({ params }) {
               {/* Rating */}
               <div className="mt-4 flex items-center gap-2">
                 <div className="flex items-center gap-1 text-amber-500">
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-4 w-4 fill-current" />
+                  ))}
                 </div>
 
                 <span className="text-sm text-gray-400">۴.۹ از ۵</span>
@@ -130,8 +129,13 @@ export default async function ProductPage({ params }) {
 
               <div className="my-7 h-px bg-gray-100" />
 
+              {/* Description */}
+              <p className="text-sm leading-8 text-gray-500">
+                {product.description}
+              </p>
+
               {/* Price */}
-              <div>
+              <div className="mt-7">
                 <p className="text-sm text-gray-400">
                   قیمت اعلام‌شده توسط فروشنده
                 </p>
@@ -146,54 +150,52 @@ export default async function ProductPage({ params }) {
               </div>
 
               {/* Seller */}
-              <div className="mt-8 rounded-3xl border border-gray-100 bg-white p-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-500 font-black text-white">
-                      {product.shop
-                        .split(" ")
-                        .map((word) => word[0])
-                        .join("")
-                        .slice(0, 2)}
+              {shop && (
+                <div className="mt-8 rounded-3xl border border-gray-100 bg-white p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-500 font-black text-white">
+                        {shop.initials}
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-gray-400">فروشنده</p>
+
+                        <Link
+                          href={`/shops/${shop.slug}`}
+                          className="mt-1 block font-black text-gray-900 transition hover:text-violet-600"
+                        >
+                          {shop.name}
+                        </Link>
+                      </div>
                     </div>
 
-                    <div>
-                      <p className="text-xs text-gray-400">فروشنده</p>
-
-                      <Link
-                        href={`/shops/${product.shopId}`}
-                        className="mt-1 block font-black text-gray-900 transition hover:text-violet-600"
-                      >
-                        {product.shop}
-                      </Link>
-                    </div>
+                    <Link
+                      href={`/shops/${shop.slug}`}
+                      className="text-sm font-bold text-violet-600"
+                    >
+                      مشاهده
+                    </Link>
                   </div>
 
-                  <Link
-                    href={`/shops/${product.shopId}`}
-                    className="text-sm font-bold text-violet-600"
-                  >
-                    مشاهده
-                  </Link>
-                </div>
+                  <div className="mt-4 flex items-center gap-4 border-t border-gray-100 pt-4 text-xs text-gray-400">
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4" />
+                      {shop.location}
+                    </span>
 
-                <div className="mt-4 flex items-center gap-4 border-t border-gray-100 pt-4 text-xs text-gray-400">
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4" />
-                    تهران
-                  </span>
-
-                  <span className="flex items-center gap-1.5">
-                    <Package className="h-4 w-4" />
-                    ارسال توسط فروشنده
-                  </span>
+                    <span className="flex items-center gap-1.5">
+                      <Package className="h-4 w-4" />
+                      ارسال توسط فروشنده
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* CTA */}
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <a
-                  href="#"
+                  href={shop?.instagram || "#"}
                   target="_blank"
                   rel="noreferrer"
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 font-bold text-white transition hover:bg-violet-600"
@@ -202,12 +204,14 @@ export default async function ProductPage({ params }) {
                   خرید از فروشنده
                 </a>
 
-                <Link
-                  href={`/shops/${product.shopId}`}
-                  className="flex items-center justify-center rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-700 transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-600"
-                >
-                  فروشگاه
-                </Link>
+                {shop && (
+                  <Link
+                    href={`/shops/${shop.slug}`}
+                    className="flex items-center justify-center rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-700 transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-600"
+                  >
+                    فروشگاه
+                  </Link>
+                )}
               </div>
 
               {/* Trust */}

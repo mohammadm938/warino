@@ -1,7 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { Search, Store, UserRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Header() {
+  const router = useRouter();
+
+  const [search, setSearch] = useState("");
+
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -39,13 +47,25 @@ export default function Header() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="hidden rounded-xl p-2.5 text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 sm:block"
-            aria-label="جستجو"
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+
+              const value = search.trim();
+
+              if (!value) return;
+
+              router.push(`/search?q=${encodeURIComponent(value)}`);
+            }}
           >
-            <Search className="h-5 w-5" />
-          </button>
+            <input
+              className="focus:outline-none"
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="چی می‌خوای پیدا کنی؟"
+            />
+          </form>
 
           <Link
             href="/register"

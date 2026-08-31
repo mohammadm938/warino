@@ -57,7 +57,7 @@ export default function ProductGrid({ products }) {
               </div>
 
               <Link
-                href={`/products/${product.id}`}
+                href={`/products/${product.slug}`}
                 className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-900 text-white transition hover:bg-violet-600"
                 aria-label="مشاهده محصول"
               >

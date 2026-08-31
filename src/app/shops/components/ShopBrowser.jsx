@@ -5,34 +5,55 @@ import { Search, SlidersHorizontal, Store } from "lucide-react";
 
 import ShopGrid from "./ShopGrid";
 
-const categories = [
-  "همه",
-  "زیورآلات",
-  "اکسسوری",
-  "ساعت",
-  "پوشاک",
-  "خانه و دکور",
-];
+import { categories } from "../../data/categories";
 
 export default function ShopBrowser({ shops }) {
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("همه");
+  const [selectedCategory, setSelectedCategory] = useState("همه");
 
   const filteredShops = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
+    const selectedCategoryObject = categories.find(
+      (category) => category.name === selectedCategory,
+    );
+
     return shops.filter((shop) => {
+      const shopName = shop.name?.toLowerCase() || "";
+
+      const username = shop.username?.toLowerCase() || "";
+
+      const description = shop.description?.toLowerCase() || "";
+
+      const location = shop.location?.toLowerCase() || "";
+
+      /*
+       * Search
+       */
       const matchesSearch =
         normalizedSearch === "" ||
-        shop.name.toLowerCase().includes(normalizedSearch) ||
-        shop.username.toLowerCase().includes(normalizedSearch) ||
-        shop.description.toLowerCase().includes(normalizedSearch);
+        shopName.includes(normalizedSearch) ||
+        username.includes(normalizedSearch) ||
+        description.includes(normalizedSearch) ||
+        location.includes(normalizedSearch);
 
-      const matchesCategory = category === "همه" || shop.category === category;
+      /*
+       * Category
+       */
+      const matchesCategory =
+        selectedCategory === "همه" ||
+        shop.categoryId === selectedCategoryObject?.id;
 
       return matchesSearch && matchesCategory;
     });
-  }, [shops, search, category]);
+  }, [shops, search, selectedCategory]);
+
+  const hasFilters = search.trim() !== "" || selectedCategory !== "همه";
+
+  const clearFilters = () => {
+    setSearch("");
+    setSelectedCategory("همه");
+  };
 
   return (
     <>
@@ -47,7 +68,7 @@ export default function ShopBrowser({ shops }) {
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="نام فروشگاه را جستجو کن..."
+              placeholder="نام فروشگاه، آیدی یا شهر را جستجو کن..."
               className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm outline-none transition placeholder:text-gray-400 focus:border-violet-400 focus:bg-white"
             />
           </div>
@@ -56,21 +77,33 @@ export default function ShopBrowser({ shops }) {
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             <SlidersHorizontal className="ml-2 h-5 w-5 shrink-0 text-gray-400" />
 
-            {categories.map((item) => {
-              const isActive = category === item;
+            <button
+              type="button"
+              onClick={() => setSelectedCategory("همه")}
+              className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                selectedCategory === "همه"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-50 text-gray-600 hover:bg-violet-50 hover:text-violet-600"
+              }`}
+            >
+              همه
+            </button>
+
+            {categories.map((category) => {
+              const isActive = selectedCategory === category.name;
 
               return (
                 <button
-                  key={item}
+                  key={category.id}
                   type="button"
-                  onClick={() => setCategory(item)}
+                  onClick={() => setSelectedCategory(category.name)}
                   className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                     isActive
                       ? "bg-gray-900 text-white"
                       : "bg-gray-50 text-gray-600 hover:bg-violet-50 hover:text-violet-600"
                   }`}
                 >
-                  {item}
+                  {category.name}
                 </button>
               );
             })}
@@ -78,8 +111,8 @@ export default function ShopBrowser({ shops }) {
         </div>
       </div>
 
-      {/* Result count */}
-      <div className="mb-5 flex items-center justify-between">
+      {/* Results Header */}
+      <div className="mb-5 flex items-center justify-between gap-4">
         <p className="text-sm text-gray-500">
           <span className="font-bold text-gray-900">
             {filteredShops.length}
@@ -87,13 +120,10 @@ export default function ShopBrowser({ shops }) {
           فروشگاه پیدا شد
         </p>
 
-        {(search || category !== "همه") && (
+        {hasFilters && (
           <button
             type="button"
-            onClick={() => {
-              setSearch("");
-              setCategory("همه");
-            }}
+            onClick={clearFilters}
             className="text-xs font-bold text-violet-600 transition hover:text-violet-700"
           >
             حذف فیلترها
@@ -101,7 +131,7 @@ export default function ShopBrowser({ shops }) {
         )}
       </div>
 
-      {/* Results */}
+      {/* Shops */}
       {filteredShops.length > 0 ? (
         <ShopGrid shops={filteredShops} />
       ) : (
@@ -120,10 +150,7 @@ export default function ShopBrowser({ shops }) {
 
           <button
             type="button"
-            onClick={() => {
-              setSearch("");
-              setCategory("همه");
-            }}
+            onClick={clearFilters}
             className="mt-5 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-violet-600"
           >
             نمایش همه فروشگاه‌ها

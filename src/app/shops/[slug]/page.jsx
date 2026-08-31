@@ -12,16 +12,17 @@ import {
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 
-import { products, shops } from "../../data/mockData";
+import { products } from "../../data/products";
+import { shops } from "../../data/shops";
 
 function formatPrice(price) {
   return new Intl.NumberFormat("fa-IR").format(price);
 }
 
 export default async function ShopPage({ params }) {
-  const { id } = await params;
+  const { slug } = await params;
 
-  const shop = shops.find((item) => item.id === Number(id));
+  const shop = shops.find((item) => item.slug === slug);
 
   if (!shop) {
     return (
@@ -207,7 +208,7 @@ export default async function ShopPage({ params }) {
                     key={product.id}
                     className="group overflow-hidden rounded-3xl border border-gray-100 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-gray-200/50"
                   >
-                    <Link href={`/products/${product.id}`} className="block">
+                    <Link href={`/products/${product.slug}`} className="block">
                       <div className="aspect-square overflow-hidden bg-gray-100">
                         <img
                           src={product.image}
@@ -223,7 +224,7 @@ export default async function ShopPage({ params }) {
                       </p>
 
                       <Link
-                        href={`/products/${product.id}`}
+                        href={`/products/${product.slug}`}
                         className="mt-2 block font-bold text-gray-900 transition hover:text-violet-600"
                       >
                         {product.title}
@@ -235,7 +236,7 @@ export default async function ShopPage({ params }) {
                         </p>
 
                         <Link
-                          href={`/products/${product.id}`}
+                          href={`/products/${product.slug}`}
                           className="text-xs font-bold text-gray-400 transition hover:text-violet-600"
                         >
                           مشاهده
