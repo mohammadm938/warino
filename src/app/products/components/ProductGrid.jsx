@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ExternalLink, Heart } from "lucide-react";
+import FavoriteButton from "../../components/common/FavoriteButton";
+import { categories } from "@/app/data/categories";
 
 function formatPrice(price) {
   return new Intl.NumberFormat("fa-IR").format(price);
@@ -21,16 +23,10 @@ export default function ProductGrid({ products }) {
               className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
 
-            <button
-              type="button"
-              aria-label="افزودن به علاقه‌مندی‌ها"
-              className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-gray-600 shadow-sm backdrop-blur transition hover:text-red-500"
-            >
-              <Heart className="h-5 w-5" />
-            </button>
+            <FavoriteButton productId={product.id} />
 
             <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-gray-700 backdrop-blur">
-              {product.category}
+              {categories[product.categoryId].name}
             </span>
           </div>
 
