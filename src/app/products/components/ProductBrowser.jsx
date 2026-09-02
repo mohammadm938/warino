@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+
 import { Search, SlidersHorizontal, PackageSearch } from "lucide-react";
 
 import ProductGrid from "./ProductGrid";
 
-import { shops } from "../../data/shops";
 import { categories } from "../../data/categories";
 
 const sortOptions = [
@@ -23,66 +23,69 @@ const sortOptions = [
   },
 ];
 
-export default function ProductBrowser({ products }) {
+export default function ProductBrowser({ initialProducts = [] }) {
+  const [products, setProducts] = useState(initialProducts);
+
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("همه");
   const [sort, setSort] = useState("default");
 
-  const filteredProducts = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+  const [loading, setLoading] = useState(false);
 
-    const selectedCategoryObject = categories.find(
-      (category) => category.name === selectedCategory,
-    );
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const fetchProducts = async () => {
+        try {
+          setLoading(true);
 
-    let result = products.filter((product) => {
-      const shop = shops.find((item) => item.id === product.shopId);
+          const params = new URLSearchParams();
 
-      const category = categories.find(
-        (item) => item.id === product.categoryId,
-      );
+          if (search.trim()) {
+            params.set("q", search.trim());
+          }
 
-      const productTitle = product.title?.toLowerCase() || "";
+          if (selectedCategory !== "همه") {
+            const category = categories.find(
+              (item) => item.name === selectedCategory,
+            );
 
-      const shopName = shop?.name?.toLowerCase() || "";
+            if (category) {
+              params.set("category", category.id);
+            }
+          }
 
-      const shopUsername = shop?.username?.toLowerCase() || "";
+          if (sort !== "default") {
+            params.set("sort", sort);
+          }
 
-      const categoryName = category?.name?.toLowerCase() || "";
+          const queryString = params.toString();
 
-      /*
-       * Search
-       */
-      const matchesSearch =
-        normalizedSearch === "" ||
-        productTitle.includes(normalizedSearch) ||
-        shopName.includes(normalizedSearch) ||
-        shopUsername.includes(normalizedSearch) ||
-        categoryName.includes(normalizedSearch);
+          const response = await fetch(
+            `/api/products${queryString ? `?${queryString}` : ""}`,
+          );
 
-      /*
-       * Category
-       */
-      const matchesCategory =
-        selectedCategory === "همه" ||
-        product.categoryId === selectedCategoryObject?.id;
+          if (!response.ok) {
+            throw new Error("خطا در دریافت محصولات");
+          }
 
-      return matchesSearch && matchesCategory;
-    });
+          const data = await response.json();
 
-    /*
-     * Sorting
-     */
-    if (sort === "price-low") {
-      result = [...result].sort((a, b) => a.price - b.price);
-    }
+          setProducts(data.products || []);
+        } catch (error) {
+          console.error("Products fetch error:", error);
+          setProducts([]);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    if (sort === "price-high") {
-      result = [...result].sort((a, b) => b.price - a.price);
-    }
+      fetchProducts();
+    }, 300);
 
-    return result;
-  }, [products, search, selectedCategory, sort]);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [search, selectedCategory, sort]);
 
   const hasFilters =
     search.trim() !== "" || selectedCategory !== "همه" || sort !== "default";
@@ -168,9 +171,7 @@ export default function ProductBrowser({ products }) {
       {/* Results Header */}
       <div className="mb-5 flex items-center justify-between gap-4">
         <p className="text-sm text-gray-500">
-          <span className="font-bold text-gray-900">
-            {filteredProducts.length}
-          </span>{" "}
+          <span className="font-bold text-gray-900">{products.length}</span>{" "}
           محصول پیدا شد
         </p>
 
@@ -185,9 +186,15 @@ export default function ProductBrowser({ products }) {
         )}
       </div>
 
-      {/* Products */}
-      {filteredProducts.length > 0 ? (
-        <ProductGrid products={filteredProducts} />
+      {/* Loading */}
+      {loading ? (
+        <div className="rounded-3xl border border-gray-100 bg-white px-6 py-16 text-center">
+          <p className="text-sm font-semibold text-gray-500">
+            در حال دریافت محصولات...
+          </p>
+        </div>
+      ) : products.length > 0 ? (
+        <ProductGrid products={products} />
       ) : (
         <div className="rounded-3xl border border-gray-100 bg-white px-6 py-16 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">

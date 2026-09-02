@@ -1,4 +1,6 @@
 import { products } from "../../data/products";
+import { shops } from "../../data/shops";
+import { categories } from "../../data/categories";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -11,34 +13,43 @@ export async function GET(request) {
 
   let result = [...products];
 
-  // -------------------------
   // Search
-  // -------------------------
-
   if (query) {
     result = result.filter((product) => {
+      const shop = shops.find((shop) => shop.id === product.shopId);
+
+      const categoryObject = categories.find(
+        (item) => item.id === product.categoryId,
+      );
+
       const title = product.title?.toLowerCase() || "";
 
       const description = product.description?.toLowerCase() || "";
 
-      return title.includes(query) || description.includes(query);
+      const shopName = shop?.name?.toLowerCase() || "";
+
+      const shopUsername = shop?.username?.toLowerCase() || "";
+
+      const categoryName = categoryObject?.name?.toLowerCase() || "";
+
+      return (
+        title.includes(query) ||
+        description.includes(query) ||
+        shopName.includes(query) ||
+        shopUsername.includes(query) ||
+        categoryName.includes(query)
+      );
     });
   }
 
-  // -------------------------
   // Category
-  // -------------------------
-
   if (category) {
     result = result.filter(
       (product) => String(product.categoryId) === String(category),
     );
   }
 
-  // -------------------------
   // Sorting
-  // -------------------------
-
   if (sort === "price-low") {
     result.sort((a, b) => a.price - b.price);
   }
@@ -46,10 +57,6 @@ export async function GET(request) {
   if (sort === "price-high") {
     result.sort((a, b) => b.price - a.price);
   }
-
-  // -------------------------
-  // Response
-  // -------------------------
 
   return Response.json({
     success: true,
