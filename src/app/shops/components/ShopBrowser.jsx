@@ -1,52 +1,72 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+
 import { Search, SlidersHorizontal, Store } from "lucide-react";
 
 import ShopGrid from "./ShopGrid";
 
 import { categories } from "../../data/categories";
 
-export default function ShopBrowser({ shops }) {
+export default function ShopBrowser({ initialShops = [] }) {
+  const [shops, setShops] = useState(initialShops);
+
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("همه");
 
-  const filteredShops = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+  const [loading, setLoading] = useState(false);
 
-    const selectedCategoryObject = categories.find(
-      (category) => category.name === selectedCategory,
-    );
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const fetchShops = async () => {
+        try {
+          setLoading(true);
 
-    return shops.filter((shop) => {
-      const shopName = shop.name?.toLowerCase() || "";
+          const params = new URLSearchParams();
 
-      const username = shop.username?.toLowerCase() || "";
+          if (search.trim()) {
+            params.set("q", search.trim());
+          }
 
-      const description = shop.description?.toLowerCase() || "";
+          if (selectedCategory !== "همه") {
+            const category = categories.find(
+              (item) => item.name === selectedCategory,
+            );
 
-      const location = shop.location?.toLowerCase() || "";
+            if (category) {
+              params.set("category", category.id);
+            }
+          }
 
-      /*
-       * Search
-       */
-      const matchesSearch =
-        normalizedSearch === "" ||
-        shopName.includes(normalizedSearch) ||
-        username.includes(normalizedSearch) ||
-        description.includes(normalizedSearch) ||
-        location.includes(normalizedSearch);
+          const queryString = params.toString();
 
-      /*
-       * Category
-       */
-      const matchesCategory =
-        selectedCategory === "همه" ||
-        shop.categoryId === selectedCategoryObject?.id;
+          const response = await fetch(
+            `/api/shops${queryString ? `?${queryString}` : ""}`,
+          );
 
-      return matchesSearch && matchesCategory;
-    });
-  }, [shops, search, selectedCategory]);
+          if (!response.ok) {
+            throw new Error("خطا در دریافت فروشگاه‌ها");
+          }
+
+          const data = await response.json();
+
+          setShops(data.shops || []);
+        } catch (error) {
+          console.error("Shops fetch error:", error);
+
+          setShops([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchShops();
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [search, selectedCategory]);
 
   const hasFilters = search.trim() !== "" || selectedCategory !== "همه";
 
@@ -114,9 +134,7 @@ export default function ShopBrowser({ shops }) {
       {/* Results Header */}
       <div className="mb-5 flex items-center justify-between gap-4">
         <p className="text-sm text-gray-500">
-          <span className="font-bold text-gray-900">
-            {filteredShops.length}
-          </span>{" "}
+          <span className="font-bold text-gray-900">{shops.length}</span>{" "}
           فروشگاه پیدا شد
         </p>
 
@@ -131,9 +149,15 @@ export default function ShopBrowser({ shops }) {
         )}
       </div>
 
-      {/* Shops */}
-      {filteredShops.length > 0 ? (
-        <ShopGrid shops={filteredShops} />
+      {/* Loading */}
+      {loading ? (
+        <div className="rounded-3xl border border-gray-100 bg-white px-6 py-16 text-center">
+          <p className="text-sm font-semibold text-gray-500">
+            در حال دریافت فروشگاه‌ها...
+          </p>
+        </div>
+      ) : shops.length > 0 ? (
+        <ShopGrid shops={shops} />
       ) : (
         <div className="rounded-3xl border border-gray-100 bg-white px-6 py-16 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">

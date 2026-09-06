@@ -43,7 +43,7 @@ export default function ShopsPage() {
           </div>
 
           {/* Browser */}
-          <ShopBrowser shops={shops} />
+          <ShopBrowser initialShops={shops} />
         </div>
       </main>
 
