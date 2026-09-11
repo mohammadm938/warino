@@ -1,8 +1,17 @@
-// src/app/forgot-password/page.js
 "use client";
 
 import { useState } from "react";
+
 import Link from "next/link";
+
+import {
+  ArrowRight,
+  CheckCircle2,
+  KeyRound,
+  Mail,
+  ShieldCheck,
+} from "lucide-react";
+
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
@@ -10,98 +19,148 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
     console.log("درخواست بازیابی رمز برای:", email);
+
     setIsSubmitted(true);
-    // منطق ارسال ایمیل بازیابی
   };
 
   return (
     <>
       <Header />
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-100 via-white to-fuchsia-100 py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* افکت‌های پس‌زمینه بنفش */}
-        <div className="absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-violet-400/30 blur-3xl"></div>
-        <div className="absolute -bottom-48 left-0 h-[600px] w-[600px] rounded-full bg-fuchsia-300/25 blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[400px] w-[400px] rounded-full bg-violet-300/20 blur-3xl"></div>
 
-        {/* کارت شیشه‌ای */}
-        <div className="relative w-full max-w-md">
-          <div className="bg-white/40 backdrop-blur-2xl rounded-3xl border border-white/30 shadow-2xl shadow-violet-500/20 p-8">
-            {/* لوگو/عنوان */}
-            <div className="text-center">
-              <div className="text-3xl font-black tracking-tight text-gray-900">
-                Warino<span className="text-violet-600">.</span>
-              </div>
-              <h2 className="mt-4 text-2xl font-bold text-gray-900">
-                رمز عبور را فراموش کردی؟
-              </h2>
-              <p className="mt-1 text-sm text-gray-600">
-                ایمیل خود را وارد کنید تا لینک بازیابی رمز عبور برای شما ارسال
-                شود
-              </p>
-            </div>
+      <main className="relative min-h-screen overflow-hidden bg-[#faf9ff] px-4 py-12 sm:px-6 lg:px-8">
+        {/* Background */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-violet-400/20 blur-3xl" />
 
-            {/* فرم */}
-            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-              <div>
-                <label className="block text-sm font-bold text-gray-700">
-                  ایمیل
-                </label>
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  className="mt-1 block w-full rounded-2xl bg-white/60 backdrop-blur-sm border border-white/50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-violet-400 focus:bg-white/80 focus:shadow-lg focus:shadow-violet-500/20"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+          <div className="absolute -bottom-48 -left-40 h-[600px] w-[600px] rounded-full bg-fuchsia-300/20 blur-3xl" />
+
+          <div className="absolute left-1/2 top-1/2 h-[450px] w-[450px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-200/20 blur-3xl" />
+        </div>
+
+        <div className="relative mx-auto flex min-h-[75vh] max-w-md items-center justify-center">
+          <div className="w-full">
+            {/* Back */}
+            <Link
+              href="/login"
+              className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-gray-400 transition hover:text-violet-600"
+            >
+              <ArrowRight className="h-4 w-4" />
+              بازگشت به ورود
+            </Link>
+
+            {/* Card */}
+            <div className="rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl sm:p-8">
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+                  {isSubmitted ? (
+                    <CheckCircle2 className="h-8 w-8 text-green-600" />
+                  ) : (
+                    <KeyRound className="h-8 w-8" />
+                  )}
+                </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-500/30 transition hover:shadow-xl hover:shadow-violet-500/40 hover:scale-[1.02]"
-              >
-                ارسال لینک بازیابی
-              </button>
-            </form>
+              {/* Title */}
+              <div className="mt-5 text-center">
+                <div className="text-3xl font-black tracking-tight text-gray-900">
+                  Warino
+                  <span className="text-violet-600">.</span>
+                </div>
 
-            {/* پیام موفقیت */}
-            {isSubmitted && (
-              <div className="mt-4 p-4 rounded-2xl bg-green-50/80 backdrop-blur-sm border border-green-200 text-center">
-                <p className="text-sm font-medium text-green-700">
-                  ✅ لینک بازیابی به ایمیل شما ارسال شد
-                </p>
-                <p className="mt-1 text-xs text-green-600">
-                  لطفاً صندوق ورودی و اسپم خود را بررسی کنید
+                <h1 className="mt-5 text-2xl font-black text-gray-900">
+                  {isSubmitted ? "ایمیل ارسال شد" : "بازیابی رمز عبور"}
+                </h1>
+
+                <p className="mt-2 text-sm leading-7 text-gray-500">
+                  {isSubmitted
+                    ? "اگر این ایمیل در وارینو ثبت شده باشد، لینک بازیابی برای شما ارسال خواهد شد."
+                    : "ایمیل حساب کاربری خود را وارد کنید تا لینک بازیابی رمز عبور برای شما ارسال شود."}
                 </p>
               </div>
-            )}
 
-            {/* لینک بازگشت به ورود */}
-            <div className="mt-6 text-center text-sm">
-              <span className="text-gray-600">
-                رمز عبور خود را به خاطر آوردی؟
-              </span>
-              <Link
-                href="/login"
-                className="mr-1 font-bold text-violet-600 hover:text-violet-700 transition"
-              >
-                وارد شو
-              </Link>
+              {!isSubmitted ? (
+                <>
+                  {/* Form */}
+                  <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+                    <div>
+                      <label
+                        htmlFor="email"
+                        className="mb-2 block text-sm font-bold text-gray-700"
+                      >
+                        ایمیل
+                      </label>
+
+                      <div className="relative">
+                        <Mail className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+
+                        <input
+                          id="email"
+                          name="email"
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(event) => setEmail(event.target.value)}
+                          placeholder="your@email.com"
+                          className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-4 pl-4 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-500/5"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full rounded-2xl bg-gray-900 py-4 text-sm font-black text-white shadow-lg shadow-gray-900/10 transition hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-violet-500/20"
+                    >
+                      ارسال لینک بازیابی
+                    </button>
+                  </form>
+                </>
+              ) : (
+                /* Success */
+                <div className="mt-7 rounded-2xl border border-green-100 bg-green-50 p-5 text-center">
+                  <div className="flex justify-center">
+                    <CheckCircle2 className="h-7 w-7 text-green-600" />
+                  </div>
+
+                  <p className="mt-3 text-sm font-bold text-green-800">
+                    درخواست شما با موفقیت ثبت شد
+                  </p>
+
+                  <p className="mt-2 text-xs leading-6 text-green-700">
+                    صندوق ورودی و پوشه Spam ایمیل خود را بررسی کنید.
+                  </p>
+                </div>
+              )}
+
+              {/* Login */}
+              <div className="mt-7 border-t border-gray-100 pt-6 text-center">
+                <span className="text-sm text-gray-500">
+                  رمز عبورت یادت اومد؟
+                </span>
+
+                <Link
+                  href="/login"
+                  className="mr-1 text-sm font-black text-violet-600 transition hover:text-violet-700"
+                >
+                  وارد شو
+                </Link>
+              </div>
             </div>
-          </div>
 
-          {/* زیرنویس شیشه‌ای */}
-          <div className="mt-4 text-center">
-            <p className="text-xs text-gray-500/80 backdrop-blur-sm bg-white/20 rounded-full px-4 py-2 inline-block border border-white/20">
-              🔐 لینک بازیابی تا ۲۴ ساعت اعتبار دارد
-            </p>
+            {/* Security */}
+            <div className="mt-5 flex items-center justify-center gap-2 text-xs text-gray-400">
+              <ShieldCheck className="h-4 w-4" />
+
+              <span>اطلاعات شما با امنیت کامل محافظت می‌شود</span>
+            </div>
           </div>
         </div>
       </main>
+
       <Footer />
     </>
   );

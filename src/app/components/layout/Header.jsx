@@ -1,11 +1,24 @@
 "use client";
 
 import { useState } from "react";
+
 import Link from "next/link";
+
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Heart, Menu, X, Store, ShoppingBag } from "lucide-react";
+
+import {
+  Search,
+  Heart,
+  Menu,
+  X,
+  Store,
+  ShoppingBag,
+  ShoppingCart,
+} from "lucide-react";
 
 import FavoritesBadge from "../common/FavoritesBadge";
+
+import useCart from "@/app/hooks/useCart";
 
 export default function Header() {
   const router = useRouter();
@@ -13,6 +26,8 @@ export default function Header() {
 
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const { totalItems, isLoaded } = useCart();
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -112,6 +127,21 @@ export default function Header() {
             {/* Favorites */}
             <FavoritesBadge />
 
+            {/* Cart */}
+            <Link
+              href="/cart"
+              className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-600 transition hover:bg-gray-100 hover:text-violet-600"
+              aria-label="سبد خرید"
+            >
+              <ShoppingCart className="h-5 w-5" />
+
+              {isLoaded && totalItems > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-black text-white">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
+            </Link>
+
             {/* Login */}
             <Link
               href="/login"
@@ -177,6 +207,7 @@ export default function Header() {
                 );
               })}
 
+              {/* Mobile Favorites */}
               <Link
                 href="/favorites"
                 onClick={() => setMobileOpen(false)}
@@ -188,12 +219,31 @@ export default function Header() {
               >
                 <Heart className="h-5 w-5" />
                 علاقه‌مندی‌ها
-                {/*
-                 * فقط لینک است؛ تعداد اصلی در FavoritesBadge
-                 * نمایش داده می‌شود.
-                 */}
               </Link>
 
+              {/* Mobile Cart */}
+              <Link
+                href="/cart"
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center justify-between rounded-2xl px-4 py-3.5 text-sm font-bold transition ${
+                  isActive("/cart")
+                    ? "bg-violet-50 text-violet-600"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <ShoppingCart className="h-5 w-5" />
+                  سبد خرید
+                </span>
+
+                {isLoaded && totalItems > 0 && (
+                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-violet-600 px-1.5 text-xs font-black text-white">
+                    {totalItems > 99 ? "99+" : totalItems}
+                  </span>
+                )}
+              </Link>
+
+              {/* Mobile Login */}
               <Link
                 href="/login"
                 onClick={() => setMobileOpen(false)}

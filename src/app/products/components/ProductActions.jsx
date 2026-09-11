@@ -1,0 +1,106 @@
+"use client";
+
+import { useState } from "react";
+
+import Link from "next/link";
+
+import { Check, Heart, ShoppingCart } from "lucide-react";
+
+import useCart from "@/app/hooks/useCart";
+
+export default function ProductActions({ product, shop }) {
+  const { addToCart } = useCart();
+
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+
+  const handleAddToCart = () => {
+    for (let i = 0; i < quantity; i++) {
+      addToCart(product);
+    }
+
+    setAdded(true);
+
+    setTimeout(() => {
+      setAdded(false);
+    }, 1500);
+  };
+
+  const increaseQuantity = () => {
+    setQuantity((current) => current + 1);
+  };
+
+  const decreaseQuantity = () => {
+    setQuantity((current) => (current > 1 ? current - 1 : 1));
+  };
+
+  return (
+    <div className="mt-6">
+      {/* Quantity + Add to Cart */}
+      <div className="flex flex-col gap-3 sm:flex-row">
+        {/* Quantity */}
+        <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-2 sm:w-36">
+          <button
+            type="button"
+            onClick={increaseQuantity}
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-xl font-bold text-gray-700 transition hover:bg-gray-100"
+          >
+            +
+          </button>
+
+          <span className="min-w-8 text-center font-black text-gray-900">
+            {quantity}
+          </span>
+
+          <button
+            type="button"
+            onClick={decreaseQuantity}
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-xl font-bold text-gray-700 transition hover:bg-gray-100"
+          >
+            −
+          </button>
+        </div>
+
+        {/* Add to Cart */}
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-2xl px-6 py-4 font-bold text-white transition ${
+            added ? "bg-green-600" : "bg-gray-900 hover:bg-violet-600"
+          }`}
+        >
+          {added ? (
+            <>
+              <Check className="h-5 w-5" />
+              به سبد اضافه شد
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-5 w-5" />
+              افزودن به سبد
+            </>
+          )}
+        </button>
+
+        {/* Favorite */}
+        <button
+          type="button"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-white text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+          aria-label="افزودن به علاقه‌مندی‌ها"
+        >
+          <Heart className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Go to Cart */}
+      {added && (
+        <Link
+          href="/cart"
+          className="mt-3 flex items-center justify-center rounded-2xl border border-violet-100 bg-violet-50 px-5 py-3 text-sm font-bold text-violet-600 transition hover:bg-violet-100"
+        >
+          مشاهده سبد خرید
+        </Link>
+      )}
+    </div>
+  );
+}

@@ -12,6 +12,7 @@ import {
 
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
+import ProductActions from "../components/ProductActions";
 
 import { products } from "../../data/products";
 import { shops } from "../../data/shops";
@@ -192,13 +193,16 @@ export default async function ProductPage({ params }) {
                 </div>
               )}
 
-              {/* CTA */}
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              {/* Cart Actions */}
+              <ProductActions product={product} shop={shop} />
+
+              {/* Seller Actions */}
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={shop?.instagram || "#"}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 font-bold text-white transition hover:bg-violet-600"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-700 transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-600"
                 >
                   <Instagram className="h-5 w-5" />
                   خرید از فروشنده
@@ -213,7 +217,6 @@ export default async function ProductPage({ params }) {
                   </Link>
                 )}
               </div>
-
               {/* Trust */}
               <div className="mt-6 flex items-start gap-3 rounded-2xl bg-green-50 p-4">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
