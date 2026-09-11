@@ -1,32 +1,76 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-import { ArrowRight, Edit3, Package, Plus, Search, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  Edit3,
+  Package,
+  Plus,
+  Search,
+  Store,
+  Trash2,
+} from "lucide-react";
 
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 
 import { products } from "../../data/products";
 import { categories } from "../../data/categories";
+import { shops } from "../../data/shops";
+
+const CURRENT_SELLER_SHOP_ID = 1;
+const SELLER_PRODUCTS_KEY = "warino_seller_products";
 
 function formatPrice(price) {
   return new Intl.NumberFormat("fa-IR").format(price);
 }
 
 export default function SellerProductsPage() {
-  const [productList, setProductList] = useState(products);
+  const currentShop = shops.find(
+    (shop) => String(shop.id) === String(CURRENT_SELLER_SHOP_ID),
+  );
+
+  // محصولات پیش‌فرض همین فروشنده
+  const defaultSellerProducts = useMemo(() => {
+    return products.filter(
+      (product) => String(product.shopId) === String(CURRENT_SELLER_SHOP_ID),
+    );
+  }, []);
+
+  const [productList, setProductList] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+
+  // خواندن محصولات ذخیره‌شده
+  useEffect(() => {
+    try {
+      const savedProducts = JSON.parse(
+        localStorage.getItem(SELLER_PRODUCTS_KEY) || "[]",
+      );
+
+      setProductList([...defaultSellerProducts, ...savedProducts]);
+    } catch (error) {
+      console.error("خطا در خواندن محصولات فروشنده:", error);
+
+      setProductList(defaultSellerProducts);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, [defaultSellerProducts]);
 
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
 
     return productList.filter((product) => {
+      const title = product.title?.toLowerCase() || "";
+      const description = product.description?.toLowerCase() || "";
+
       const matchesSearch =
-        !query || product.title?.toLowerCase().includes(query);
+        !query || title.includes(query) || description.includes(query);
 
       const matchesCategory =
         !category || String(product.categoryId) === String(category);
@@ -46,10 +90,57 @@ export default function SellerProductsPage() {
 
     if (!confirmed) return;
 
+    /*
+      اگر محصول از localStorage آمده باشد،
+      آن را از localStorage هم حذف می‌کنیم.
+    */
+    const isLocalProduct = !products.some((item) => item.id === productId);
+
+    if (isLocalProduct) {
+      try {
+        const savedProducts = JSON.parse(
+          localStorage.getItem(SELLER_PRODUCTS_KEY) || "[]",
+        );
+
+        const updatedProducts = savedProducts.filter(
+          (item) => item.id !== productId,
+        );
+
+        localStorage.setItem(
+          SELLER_PRODUCTS_KEY,
+          JSON.stringify(updatedProducts),
+        );
+      } catch (error) {
+        console.error("خطا در حذف محصول:", error);
+      }
+    }
+
     setProductList((current) =>
       current.filter((item) => item.id !== productId),
     );
   };
+
+  if (!isLoaded) {
+    return (
+      <>
+        <Header />
+
+        <main className="min-h-screen bg-[#faf9ff] px-4 py-10 sm:px-6 lg:px-8">
+          <div className="mx-auto flex min-h-[500px] max-w-7xl items-center justify-center">
+            <div className="text-center">
+              <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-violet-600" />
+
+              <p className="mt-4 text-sm font-bold text-gray-400">
+                در حال بارگذاری محصولات...
+              </p>
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -88,6 +179,42 @@ export default function SellerProductsPage() {
               <Plus className="h-5 w-5" />
               افزودن محصول
             </Link>
+          </div>
+
+          {/* Current Shop */}
+          <div className="mb-6 rounded-[2rem] border border-violet-100 bg-violet-50/60 p-5 sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gray-900 text-sm font-black text-white">
+                  {currentShop?.initials || "SJ"}
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Store className="h-4 w-4 text-violet-600" />
+
+                    <p className="text-xs font-bold text-violet-600">
+                      فروشگاه فعلی
+                    </p>
+                  </div>
+
+                  <h2 className="mt-1 text-base font-black text-gray-900">
+                    {currentShop?.name || "فروشگاه"}
+                  </h2>
+
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    {currentShop?.username || ""}
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href={`/shops/${currentShop?.slug || ""}`}
+                className="text-sm font-bold text-violet-600 transition hover:text-violet-700"
+              >
+                مشاهده فروشگاه
+              </Link>
+            </div>
           </div>
 
           {/* Filters */}
@@ -139,7 +266,7 @@ export default function SellerProductsPage() {
                   setSearch("");
                   setCategory("");
                 }}
-                className="text-xs font-bold text-violet-600 hover:text-violet-700"
+                className="text-xs font-bold text-violet-600 transition hover:text-violet-700"
               >
                 پاک کردن فیلترها
               </button>
@@ -179,6 +306,13 @@ export default function SellerProductsPage() {
                           <span className="rounded-full bg-violet-50 px-3 py-1 text-[11px] font-bold text-violet-600">
                             {categoryObject?.name || "بدون دسته"}
                           </span>
+
+                          {/* New Product Badge */}
+                          {!products.some((item) => item.id === product.id) && (
+                            <span className="rounded-full bg-green-50 px-3 py-1 text-[11px] font-bold text-green-600">
+                              جدید
+                            </span>
+                          )}
                         </div>
 
                         <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-400">
@@ -206,16 +340,13 @@ export default function SellerProductsPage() {
                           مشاهده
                         </Link>
 
-                        <button
-                          type="button"
+                        <Link
+                          href={`/seller/products/${product.id}/edit`}
                           className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 text-gray-500 transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-600"
                           aria-label="ویرایش محصول"
-                          onClick={() =>
-                            alert("صفحه ویرایش محصول را در مرحله بعد می‌سازیم.")
-                          }
                         >
                           <Edit3 className="h-4 w-4" />
-                        </button>
+                        </Link>
 
                         <button
                           type="button"
@@ -232,7 +363,6 @@ export default function SellerProductsPage() {
               })}
             </div>
           ) : (
-            /* Empty State */
             <div className="rounded-[2rem] border border-gray-100 bg-white px-6 py-20 text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
                 <Package className="h-8 w-8" />
@@ -245,6 +375,14 @@ export default function SellerProductsPage() {
               <p className="mt-2 text-sm text-gray-400">
                 جستجو یا فیلترهای انتخابی را تغییر بده.
               </p>
+
+              <Link
+                href="/seller/products/new"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-black text-white transition hover:bg-violet-600"
+              >
+                <Plus className="h-4 w-4" />
+                افزودن محصول جدید
+              </Link>
             </div>
           )}
         </div>
