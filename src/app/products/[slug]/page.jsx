@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  Heart,
   Instagram,
   MapPin,
   Package,
@@ -13,6 +12,7 @@ import {
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import ProductActions from "../components/ProductActions";
+import FavoriteButton from "@/app/components/common/FavoriteButton";
 
 import { products } from "../../data/products";
 import { shops } from "../../data/shops";
@@ -93,13 +93,7 @@ export default async function ProductPage({ params }) {
                   className="h-full w-full object-cover"
                 />
 
-                <button
-                  type="button"
-                  aria-label="افزودن به علاقه‌مندی‌ها"
-                  className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-gray-600 shadow-lg transition hover:text-red-500"
-                >
-                  <Heart className="h-5 w-5" />
-                </button>
+                <FavoriteButton product={product} />
 
                 <span className="absolute right-5 top-5 rounded-full bg-white/95 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm">
                   محصول

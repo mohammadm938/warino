@@ -2,19 +2,47 @@
 
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import useFavorites from "../../hooks/useFavorites";
+const FAVORITES_KEY = "warino_favorites";
 
 export default function FavoritesBadge() {
-  const { favorites, loaded } = useFavorites();
+  const [count, setCount] = useState(0);
 
-  const count = loaded ? favorites.length : 0;
+  const updateCount = () => {
+    try {
+      const savedFavorites = localStorage.getItem(FAVORITES_KEY);
+
+      if (!savedFavorites) {
+        setCount(0);
+        return;
+      }
+
+      const favorites = JSON.parse(savedFavorites);
+
+      setCount(Array.isArray(favorites) ? favorites.length : 0);
+    } catch (error) {
+      console.error("خطا در خواندن تعداد علاقه‌مندی‌ها:", error);
+
+      setCount(0);
+    }
+  };
+
+  useEffect(() => {
+    updateCount();
+
+    window.addEventListener("favorites-updated", updateCount);
+
+    return () => {
+      window.removeEventListener("favorites-updated", updateCount);
+    };
+  }, []);
 
   return (
     <Link
       href="/favorites"
+      className="relative flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 transition hover:bg-gray-100 hover:text-red-500"
       aria-label="علاقه‌مندی‌ها"
-      className="relative flex h-11 w-11 items-center justify-center rounded-xl text-gray-600 transition hover:bg-red-50 hover:text-red-500"
     >
       <Heart className="h-5 w-5" />
 

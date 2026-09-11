@@ -1,20 +1,12 @@
 "use client";
 
 import Link from "next/link";
-
-import { ExternalLink, ShoppingCart, Check } from "lucide-react";
-
+import { ShoppingCart, Check, Store } from "lucide-react";
 import { useState } from "react";
 
-import FavoriteButton from "../../components/common/FavoriteButton";
-
 import { categories } from "@/app/data/categories";
-
+import { shops } from "@/app/data/shops";
 import useCart from "@/app/hooks/useCart";
-
-function formatPrice(price) {
-  return new Intl.NumberFormat("fa-IR").format(price);
-}
 
 export default function ProductGrid({ products }) {
   const { addToCart } = useCart();
@@ -28,64 +20,108 @@ export default function ProductGrid({ products }) {
 
     setTimeout(() => {
       setAddedProductId(null);
-    }, 1200);
+    }, 1500);
   };
+
+  if (!products || products.length === 0) {
+    return (
+      <div className="rounded-3xl border border-gray-200 bg-white px-6 py-16 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
+          <ShoppingCart className="h-8 w-8 text-gray-400" />
+        </div>
+
+        <h3 className="mt-5 text-lg font-black text-gray-900">
+          محصولی پیدا نشد
+        </h3>
+
+        <p className="mt-2 text-sm text-gray-500">
+          فیلترها یا عبارت جستجو را تغییر بده.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {products.map((product) => (
-        <article
-          key={product.id}
-          className="group overflow-hidden rounded-3xl border border-gray-100 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-gray-200/50"
-        >
-          {/* Image */}
-          <div className="relative aspect-square overflow-hidden bg-gray-100">
-            <img
-              src={product.image}
-              alt={product.title}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            />
+      {products.map((product) => {
+        const category = categories.find(
+          (item) => String(item.id) === String(product.categoryId),
+        );
 
-            <FavoriteButton productId={product.id} />
+        const shop = shops.find(
+          (item) => String(item.id) === String(product.shopId),
+        );
 
-            <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-gray-700 backdrop-blur">
-              {categories[product.categoryId].name}
-            </span>
-          </div>
+        const isAdded = addedProductId === product.id;
 
-          {/* Content */}
-          <div className="p-5">
-            <h2 className="line-clamp-1 font-bold text-gray-900">
-              {product.title}
-            </h2>
+        return (
+          <div
+            key={product.id}
+            className="group overflow-hidden rounded-3xl border border-gray-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+          >
+            {/* تصویر */}
+            <Link href={`/products/${product.slug}`}>
+              <div className="relative aspect-square overflow-hidden bg-gray-100">
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
 
-            <Link
-              href={`/shops/${product.shopId}`}
-              className="mt-2 block text-sm text-gray-400 transition hover:text-violet-600"
-            >
-              {product.shop}
+                {category && (
+                  <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm backdrop-blur">
+                    {category.name}
+                  </span>
+                )}
+              </div>
             </Link>
 
-            <div className="mt-5">
-              <p className="text-xs text-gray-400">قیمت</p>
+            {/* محتوا */}
+            <div className="p-4">
+              <Link href={`/products/${product.slug}`}>
+                <h3 className="line-clamp-1 text-base font-black text-gray-900 transition hover:text-violet-600">
+                  {product.title}
+                </h3>
+              </Link>
 
-              <p className="mt-1 text-sm font-black text-gray-900">
-                {formatPrice(product.price)} تومان
-              </p>
-            </div>
+              {product.description && (
+                <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-6 text-gray-500">
+                  {product.description}
+                </p>
+              )}
 
-            {/* Actions */}
-            <div className="mt-4 flex gap-2">
+              {/* فروشگاه */}
+              {shop && (
+                <Link
+                  href={`/shops/${shop.slug}`}
+                  className="mt-3 flex items-center gap-2 text-sm font-bold text-gray-500 transition hover:text-violet-600"
+                >
+                  <Store className="h-4 w-4" />
+
+                  <span className="truncate">{shop.name}</span>
+                </Link>
+              )}
+
+              {/* قیمت */}
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-lg font-black text-gray-900">
+                    {Number(product.price).toLocaleString("fa-IR")}
+                  </span>
+
+                  <span className="mr-1 text-xs text-gray-500">تومان</span>
+                </div>
+              </div>
+
+              {/* دکمه */}
               <button
                 type="button"
                 onClick={() => handleAddToCart(product)}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-white transition ${
-                  addedProductId === product.id
-                    ? "bg-green-600"
-                    : "bg-gray-900 hover:bg-violet-600"
+                className={`mt-4 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-bold text-white transition ${
+                  isAdded ? "bg-green-600" : "bg-gray-900 hover:bg-violet-600"
                 }`}
               >
-                {addedProductId === product.id ? (
+                {isAdded ? (
                   <>
                     <Check className="h-4 w-4" />
                     اضافه شد
@@ -97,18 +133,10 @@ export default function ProductGrid({ products }) {
                   </>
                 )}
               </button>
-
-              <Link
-                href={`/products/${product.slug}`}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-700 transition hover:bg-violet-100 hover:text-violet-600"
-                aria-label="مشاهده محصول"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </Link>
             </div>
           </div>
-        </article>
-      ))}
+        );
+      })}
     </div>
   );
 }
