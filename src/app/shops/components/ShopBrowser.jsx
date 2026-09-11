@@ -9,58 +9,59 @@ import ShopGrid from "./ShopGrid";
 import { categories } from "../../data/categories";
 
 export default function ShopBrowser({ initialShops = [] }) {
-  const [shops, setShops] = useState(initialShops);
+  const [shops, setShops] = useState(
+    Array.isArray(initialShops) ? initialShops : [],
+  );
 
   const [search, setSearch] = useState("");
+
   const [selectedCategory, setSelectedCategory] = useState("همه");
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const fetchShops = async () => {
-        try {
-          setLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        setLoading(true);
 
-          const params = new URLSearchParams();
+        const params = new URLSearchParams();
 
-          if (search.trim()) {
-            params.set("q", search.trim());
-          }
+        if (search.trim()) {
+          params.set("q", search.trim());
+        }
 
-          if (selectedCategory !== "همه") {
-            const category = categories.find(
-              (item) => item.name === selectedCategory,
-            );
-
-            if (category) {
-              params.set("category", category.id);
-            }
-          }
-
-          const queryString = params.toString();
-
-          const response = await fetch(
-            `/api/shops${queryString ? `?${queryString}` : ""}`,
+        if (selectedCategory !== "همه") {
+          const category = categories.find(
+            (item) => item.name === selectedCategory,
           );
 
-          if (!response.ok) {
-            throw new Error("خطا در دریافت فروشگاه‌ها");
+          if (category) {
+            params.set("category", String(category.id));
           }
-
-          const data = await response.json();
-
-          setShops(data.shops || []);
-        } catch (error) {
-          console.error("Shops fetch error:", error);
-
-          setShops([]);
-        } finally {
-          setLoading(false);
         }
-      };
 
-      fetchShops();
+        const queryString = params.toString();
+
+        const url = queryString ? `/api/shops?${queryString}` : "/api/shops";
+
+        const response = await fetch(url, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("خطا در دریافت فروشگاه‌ها");
+        }
+
+        const data = await response.json();
+
+        setShops(Array.isArray(data.shops) ? data.shops : []);
+      } catch (error) {
+        console.error("Shops fetch error:", error);
+
+        setShops([]);
+      } finally {
+        setLoading(false);
+      }
     }, 300);
 
     return () => {
@@ -134,7 +135,9 @@ export default function ShopBrowser({ initialShops = [] }) {
       {/* Results Header */}
       <div className="mb-5 flex items-center justify-between gap-4">
         <p className="text-sm text-gray-500">
-          <span className="font-bold text-gray-900">{shops.length}</span>{" "}
+          <span className="font-bold text-gray-900">
+            {shops.length.toLocaleString("fa-IR")}
+          </span>{" "}
           فروشگاه پیدا شد
         </p>
 
