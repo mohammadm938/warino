@@ -192,15 +192,17 @@ export default async function ProductPage({ params }) {
 
               {/* Seller Actions */}
               <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href={shop?.instagram || "#"}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-700 transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-600"
-                >
-                  <Instagram className="h-5 w-5" />
-                  خرید از فروشنده
-                </a>
+                {shop?.instagram && (
+                  <a
+                    href={shop.instagram}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-700 transition hover:border-violet-200 hover:bg-violet-50 hover:text-violet-600"
+                  >
+                    <Instagram className="h-5 w-5" />
+                    خرید از فروشنده
+                  </a>
+                )}
 
                 {shop && (
                   <Link

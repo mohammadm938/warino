@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
 import Link from "next/link";
-
-import { Check, Heart, ShoppingCart } from "lucide-react";
+import { Check, ShoppingCart } from "lucide-react";
 
 import useCart from "@/app/hooks/useCart";
 
@@ -36,14 +34,14 @@ export default function ProductActions({ product, shop }) {
 
   return (
     <div className="mt-6">
-      {/* Quantity + Add to Cart */}
       <div className="flex flex-col gap-3 sm:flex-row">
-        {/* Quantity */}
+        {/* تعداد */}
         <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-2 sm:w-36">
           <button
             type="button"
             onClick={increaseQuantity}
             className="flex h-11 w-11 items-center justify-center rounded-xl text-xl font-bold text-gray-700 transition hover:bg-gray-100"
+            aria-label="افزایش تعداد"
           >
             +
           </button>
@@ -56,12 +54,13 @@ export default function ProductActions({ product, shop }) {
             type="button"
             onClick={decreaseQuantity}
             className="flex h-11 w-11 items-center justify-center rounded-xl text-xl font-bold text-gray-700 transition hover:bg-gray-100"
+            aria-label="کاهش تعداد"
           >
             −
           </button>
         </div>
 
-        {/* Add to Cart */}
+        {/* افزودن به سبد */}
         <button
           type="button"
           onClick={handleAddToCart}
@@ -81,18 +80,9 @@ export default function ProductActions({ product, shop }) {
             </>
           )}
         </button>
-
-        {/* Favorite */}
-        <button
-          type="button"
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-white text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
-          aria-label="افزودن به علاقه‌مندی‌ها"
-        >
-          <Heart className="h-5 w-5" />
-        </button>
       </div>
 
-      {/* Go to Cart */}
+      {/* مشاهده سبد */}
       {added && (
         <Link
           href="/cart"
