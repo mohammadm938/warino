@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
 import Link from "next/link";
-
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   Eye,
@@ -12,13 +11,20 @@ import {
   Mail,
   User,
   ShieldCheck,
+  Loader2,
 } from "lucide-react";
 
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const redirect = searchParams.get("redirect") || "/";
+
   const [isLogin, setIsLogin] = useState(true);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -29,31 +35,129 @@ export default function LoginPage() {
     confirmPassword: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
   const handleChange = (event) => {
-    setFormData({
-      ...formData,
+    setFormData((current) => ({
+      ...current,
       [event.target.name]: event.target.value,
-    });
+    }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      alert("رمز عبور و تکرار رمز عبور یکسان نیستند.");
-      return;
+    setError("");
+    setSuccess("");
+
+    // =========================
+    // Register
+    // =========================
+    if (!isLogin) {
+      if (!formData.name.trim()) {
+        setError("لطفاً نام و نام خانوادگی خود را وارد کنید.");
+        return;
+      }
+
+      if (!formData.email.trim()) {
+        setError("لطفاً ایمیل خود را وارد کنید.");
+        return;
+      }
+
+      if (formData.password.length < 8) {
+        setError("رمز عبور باید حداقل ۸ کاراکتر باشد.");
+        return;
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        setError("رمز عبور و تکرار رمز عبور یکسان نیستند.");
+        return;
+      }
     }
 
+    // =========================
+    // Login
+    // =========================
     if (isLogin) {
-      console.log("ورود با:", {
-        email: formData.email,
-        password: formData.password,
+      if (!formData.email.trim()) {
+        setError("لطفاً ایمیل خود را وارد کنید.");
+        return;
+      }
+
+      if (!formData.password) {
+        setError("لطفاً رمز عبور خود را وارد کنید.");
+        return;
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+
+      const body = isLogin
+        ? {
+            email: formData.email,
+            password: formData.password,
+          }
+        : {
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+          };
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
       });
 
-      return;
-    }
+      const data = await response.json();
 
-    console.log("ثبت‌نام با:", formData);
+      if (!response.ok) {
+        setError(data.message || "عملیات انجام نشد.");
+        return;
+      }
+
+      // =========================
+      // Successful Login
+      // =========================
+      if (isLogin) {
+        setSuccess("ورود با موفقیت انجام شد. در حال انتقال...");
+
+        router.push(redirect);
+        router.refresh();
+
+        return;
+      }
+
+      // =========================
+      // Successful Register
+      // =========================
+      setSuccess("ثبت‌نام با موفقیت انجام شد. در حال انتقال به صفحه ورود...");
+
+      setFormData({
+        name: "",
+        email: formData.email,
+        password: "",
+        confirmPassword: "",
+      });
+
+      setTimeout(() => {
+        setIsLogin(true);
+        setSuccess("");
+      }, 1200);
+    } catch (error) {
+      console.error("خطا در احراز هویت:", error);
+
+      setError("خطایی در ارتباط با سرور رخ داد.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const switchMode = (loginMode) => {
@@ -68,14 +172,22 @@ export default function LoginPage() {
 
     setShowPassword(false);
     setShowConfirmPassword(false);
+
+    setError("");
+    setSuccess("");
   };
 
   return (
     <>
       <Header />
 
-      <main className="relative min-h-screen overflow-hidden bg-[#faf9ff] px-4 py-12 sm:px-6 lg:px-8">
-        {/* Background */}
+      <main
+        dir="rtl"
+        className="relative min-h-screen overflow-hidden bg-[#faf9ff] px-4 py-12 sm:px-6 lg:px-8"
+      >
+        {/* =========================
+            Background
+        ========================== */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-violet-400/20 blur-3xl" />
 
@@ -86,7 +198,9 @@ export default function LoginPage() {
 
         <div className="relative mx-auto flex min-h-[75vh] max-w-md items-center justify-center">
           <div className="w-full">
-            {/* Back */}
+            {/* =========================
+                Back
+            ========================== */}
             <Link
               href="/"
               className="mb-5 inline-flex items-center gap-2 text-sm font-bold text-gray-400 transition hover:text-violet-600"
@@ -95,9 +209,13 @@ export default function LoginPage() {
               بازگشت به خانه
             </Link>
 
-            {/* Card */}
+            {/* =========================
+                Card
+            ========================== */}
             <div className="rounded-[2rem] border border-white/70 bg-white/75 p-6 shadow-2xl shadow-violet-500/10 backdrop-blur-2xl sm:p-8">
-              {/* Logo */}
+              {/* =========================
+                  Logo / Title
+              ========================== */}
               <div className="text-center">
                 <Link
                   href="/"
@@ -108,9 +226,7 @@ export default function LoginPage() {
                 </Link>
 
                 <h1 className="mt-5 text-2xl font-black text-gray-900">
-                  {isLogin
-                    ? "خوش برگشتی 👋"
-                    : "به وارینو خوش آمدی 👋"}
+                  {isLogin ? "خوش برگشتی 👋" : "به وارینو خوش آمدی 👋"}
                 </h1>
 
                 <p className="mt-2 text-sm leading-6 text-gray-500">
@@ -120,16 +236,19 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {/* Tabs */}
+              {/* =========================
+                  Tabs
+              ========================== */}
               <div className="mt-7 flex rounded-2xl border border-gray-100 bg-gray-100/80 p-1">
                 <button
                   type="button"
                   onClick={() => switchMode(true)}
+                  disabled={loading}
                   className={`flex-1 rounded-xl py-3 text-sm font-black transition-all ${
                     isLogin
                       ? "bg-white text-violet-600 shadow-sm"
                       : "text-gray-500 hover:text-gray-900"
-                  }`}
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
                 >
                   ورود
                 </button>
@@ -137,22 +256,42 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => switchMode(false)}
+                  disabled={loading}
                   className={`flex-1 rounded-xl py-3 text-sm font-black transition-all ${
                     !isLogin
                       ? "bg-white text-violet-600 shadow-sm"
                       : "text-gray-500 hover:text-gray-900"
-                  }`}
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
                 >
                   ثبت‌نام
                 </button>
               </div>
 
-              {/* Form */}
-              <form
-                onSubmit={handleSubmit}
-                className="mt-7 space-y-5"
-              >
-                {/* Name */}
+              {/* =========================
+                  Error
+              ========================== */}
+              {error && (
+                <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold leading-6 text-red-600">
+                  {error}
+                </div>
+              )}
+
+              {/* =========================
+                  Success
+              ========================== */}
+              {success && (
+                <div className="mt-5 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-bold leading-6 text-green-600">
+                  {success}
+                </div>
+              )}
+
+              {/* =========================
+                  Form
+              ========================== */}
+              <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+                {/* =========================
+                    Name
+                ========================== */}
                 {!isLogin && (
                   <div>
                     <label
@@ -172,14 +311,18 @@ export default function LoginPage() {
                         value={formData.name}
                         onChange={handleChange}
                         placeholder="مثلاً محمد رضایی"
+                        autoComplete="name"
                         required
-                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-500/5"
+                        disabled={loading}
+                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-500/5 disabled:cursor-not-allowed disabled:opacity-60"
                       />
                     </div>
                   </div>
                 )}
 
-                {/* Email */}
+                {/* =========================
+                    Email
+                ========================== */}
                 <div>
                   <label
                     htmlFor="email"
@@ -198,13 +341,17 @@ export default function LoginPage() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="your@email.com"
+                      autoComplete="email"
                       required
-                      className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-500/5"
+                      disabled={loading}
+                      className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-500/5 disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   </div>
                 </div>
 
-                {/* Password */}
+                {/* =========================
+                    Password
+                ========================== */}
                 <div>
                   <div className="mb-2 flex items-center justify-between">
                     <label
@@ -234,21 +381,20 @@ export default function LoginPage() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="رمز عبور خود را وارد کنید"
+                      autoComplete={
+                        isLogin ? "current-password" : "new-password"
+                      }
                       required
-                      className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-500/5"
+                      disabled={loading}
+                      className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-500/5 disabled:cursor-not-allowed disabled:opacity-60"
                     />
 
                     <button
                       type="button"
-                      onClick={() =>
-                        setShowPassword((current) => !current)
-                      }
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-violet-600"
-                      aria-label={
-                        showPassword
-                          ? "مخفی کردن رمز"
-                          : "نمایش رمز"
-                      }
+                      onClick={() => setShowPassword((current) => !current)}
+                      disabled={loading}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-violet-600 disabled:opacity-50"
+                      aria-label={showPassword ? "مخفی کردن رمز" : "نمایش رمز"}
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5" />
@@ -259,7 +405,9 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Confirm Password */}
+                {/* =========================
+                    Confirm Password
+                ========================== */}
                 {!isLogin && (
                   <div>
                     <label
@@ -275,30 +423,25 @@ export default function LoginPage() {
                       <input
                         id="confirmPassword"
                         name="confirmPassword"
-                        type={
-                          showConfirmPassword
-                            ? "text"
-                            : "password"
-                        }
+                        type={showConfirmPassword ? "text" : "password"}
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         placeholder="رمز عبور را دوباره وارد کنید"
+                        autoComplete="new-password"
                         required
-                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-4 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-500/5"
+                        disabled={loading}
+                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-12 text-sm text-gray-900 outline-none transition placeholder:text-gray-300 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-500/5 disabled:cursor-not-allowed disabled:opacity-60"
                       />
 
                       <button
                         type="button"
                         onClick={() =>
-                          setShowConfirmPassword(
-                            (current) => !current
-                          )
+                          setShowConfirmPassword((current) => !current)
                         }
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-violet-600"
+                        disabled={loading}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-violet-600 disabled:opacity-50"
                         aria-label={
-                          showConfirmPassword
-                            ? "مخفی کردن رمز"
-                            : "نمایش رمز"
+                          showConfirmPassword ? "مخفی کردن رمز" : "نمایش رمز"
                         }
                       >
                         {showConfirmPassword ? (
@@ -311,7 +454,9 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {/* Remember */}
+                {/* =========================
+                    Remember Me
+                ========================== */}
                 {isLogin && (
                   <label className="flex cursor-pointer items-center gap-2">
                     <input
@@ -325,40 +470,52 @@ export default function LoginPage() {
                   </label>
                 )}
 
-                {/* Submit */}
+                {/* =========================
+                    Submit
+                ========================== */}
                 <button
                   type="submit"
-                  className="w-full rounded-2xl bg-gray-900 py-4 text-sm font-black text-white shadow-lg shadow-gray-900/10 transition hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-violet-500/20"
+                  disabled={loading}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gray-900 py-4 text-sm font-black text-white shadow-lg shadow-gray-900/10 transition hover:-translate-y-0.5 hover:bg-violet-600 hover:shadow-violet-500/20 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-60"
                 >
-                  {isLogin ? "ورود به حساب" : "ساخت حساب کاربری"}
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+
+                      {isLogin ? "در حال ورود..." : "در حال ثبت‌نام..."}
+                    </>
+                  ) : (
+                    <>{isLogin ? "ورود به حساب" : "ساخت حساب کاربری"}</>
+                  )}
                 </button>
               </form>
 
-              {/* Switch */}
+              {/* =========================
+                  Switch
+              ========================== */}
               <div className="mt-7 border-t border-gray-100 pt-6 text-center">
                 <span className="text-sm text-gray-500">
-                  {isLogin
-                    ? "حساب کاربری نداری؟"
-                    : "قبلاً ثبت‌نام کردی؟"}
+                  {isLogin ? "حساب کاربری نداری؟" : "قبلاً ثبت‌نام کردی؟"}
                 </span>
 
                 <button
                   type="button"
                   onClick={() => switchMode(!isLogin)}
-                  className="mr-1 text-sm font-black text-violet-600 transition hover:text-violet-700"
+                  disabled={loading}
+                  className="mr-1 text-sm font-black text-violet-600 transition hover:text-violet-700 disabled:opacity-50"
                 >
                   {isLogin ? "ثبت‌نام کن" : "وارد شو"}
                 </button>
               </div>
             </div>
 
-            {/* Security */}
+            {/* =========================
+                Security
+            ========================== */}
             <div className="mt-5 flex items-center justify-center gap-2 text-xs text-gray-400">
               <ShieldCheck className="h-4 w-4" />
 
-              <span>
-                امنیت اطلاعات شما برای ما مهم است
-              </span>
+              <span>امنیت اطلاعات شما برای ما مهم است</span>
             </div>
           </div>
         </div>
