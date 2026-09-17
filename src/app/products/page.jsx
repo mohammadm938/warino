@@ -3,12 +3,11 @@ import Header from "../components/layout/Header";
 import ProductBrowser from "./components/ProductBrowser";
 
 async function getProducts() {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/products`,
-    {
-      cache: "no-store",
-    },
-  );
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+  const response = await fetch(`${baseUrl}/api/products`, {
+    cache: "no-store",
+  });
 
   if (!response.ok) {
     throw new Error("خطا در دریافت محصولات");
@@ -25,6 +24,7 @@ export default async function ProductsPage() {
   return (
     <>
       <Header />
+
       <main className="min-h-screen bg-gray-50 px-4 py-10">
         <div className="mx-auto max-w-7xl">
           <div className="mb-8">
@@ -38,6 +38,7 @@ export default async function ProductsPage() {
           <ProductBrowser initialProducts={products} />
         </div>
       </main>
+
       <Footer />
     </>
   );

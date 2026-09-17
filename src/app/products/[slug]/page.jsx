@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import {
   ArrowRight,
   Instagram,
@@ -11,19 +12,39 @@ import {
 
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
+
 import ProductActions from "../components/ProductActions";
 import FavoriteButton from "@/app/components/common/FavoriteButton";
 
-import { products } from "../../data/products";
-import { shops } from "../../data/shops";
+import prisma from "@/app/lib/prisma";
 
 function formatPrice(price) {
-  return new Intl.NumberFormat("fa-IR").format(price);
+  return new Intl.NumberFormat("fa-IR").format(Number(price));
+}
+
+async function getProduct(slug) {
+  try {
+    const product = await prisma.product.findUnique({
+      where: {
+        slug,
+      },
+      include: {
+        shop: true,
+        category: true,
+      },
+    });
+
+    return product;
+  } catch (error) {
+    console.error("خطا در دریافت محصول:", error);
+    return null;
+  }
 }
 
 export default async function ProductPage({ params }) {
   const { slug } = await params;
-  const product = products.find((item) => item.slug === slug);
+
+  const product = await getProduct(slug);
 
   if (!product) {
     return (
@@ -58,7 +79,7 @@ export default async function ProductPage({ params }) {
     );
   }
 
-  const shop = shops.find((item) => item.id === product.shopId);
+  const shop = product.shop;
 
   return (
     <>
@@ -87,16 +108,22 @@ export default async function ProductPage({ params }) {
             {/* Image */}
             <div className="relative overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm">
               <div className="relative aspect-square overflow-hidden rounded-[1.5rem] bg-gray-100">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="h-full w-full object-cover"
-                />
+                {product.image ? (
+                  <img
+                    src={product.image}
+                    alt={product.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <ShoppingBag className="h-16 w-16 text-gray-300" />
+                  </div>
+                )}
 
                 <FavoriteButton product={product} />
 
                 <span className="absolute right-5 top-5 rounded-full bg-white/95 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm">
-                  محصول
+                  {product.category?.name || "محصول"}
                 </span>
               </div>
             </div>
@@ -126,7 +153,7 @@ export default async function ProductPage({ params }) {
 
               {/* Description */}
               <p className="text-sm leading-8 text-gray-500">
-                {product.description}
+                {product.description || "توضیحی برای این محصول ثبت نشده است."}
               </p>
 
               {/* Price */}
@@ -150,7 +177,7 @@ export default async function ProductPage({ params }) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-500 font-black text-white">
-                        {shop.initials}
+                        {shop.initials || shop.name?.slice(0, 2)}
                       </div>
 
                       <div>
@@ -174,10 +201,12 @@ export default async function ProductPage({ params }) {
                   </div>
 
                   <div className="mt-4 flex items-center gap-4 border-t border-gray-100 pt-4 text-xs text-gray-400">
-                    <span className="flex items-center gap-1.5">
-                      <MapPin className="h-4 w-4" />
-                      {shop.location}
-                    </span>
+                    {shop.location && (
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="h-4 w-4" />
+                        {shop.location}
+                      </span>
+                    )}
 
                     <span className="flex items-center gap-1.5">
                       <Package className="h-4 w-4" />
@@ -213,6 +242,7 @@ export default async function ProductPage({ params }) {
                   </Link>
                 )}
               </div>
+
               {/* Trust */}
               <div className="mt-6 flex items-start gap-3 rounded-2xl bg-green-50 p-4">
                 <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />

@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import { Search, SlidersHorizontal, Store } from "lucide-react";
 
 import ShopGrid from "./ShopGrid";
-
 import { categories } from "../../data/categories";
 
 export default function ShopBrowser({ initialShops = [] }) {
@@ -14,15 +12,15 @@ export default function ShopBrowser({ initialShops = [] }) {
   );
 
   const [search, setSearch] = useState("");
-
   const [selectedCategory, setSelectedCategory] = useState("همه");
-
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(async () => {
       try {
         setLoading(true);
+        setError("");
 
         const params = new URLSearchParams();
 
@@ -54,11 +52,16 @@ export default function ShopBrowser({ initialShops = [] }) {
 
         const data = await response.json();
 
+        if (!data.success) {
+          throw new Error(data.message || "خطا در دریافت فروشگاه‌ها");
+        }
+
         setShops(Array.isArray(data.shops) ? data.shops : []);
       } catch (error) {
         console.error("Shops fetch error:", error);
 
         setShops([]);
+        setError("دریافت فروشگاه‌ها با خطا مواجه شد.");
       } finally {
         setLoading(false);
       }
@@ -74,6 +77,7 @@ export default function ShopBrowser({ initialShops = [] }) {
   const clearFilters = () => {
     setSearch("");
     setSelectedCategory("همه");
+    setError("");
   };
 
   return (
@@ -98,6 +102,7 @@ export default function ShopBrowser({ initialShops = [] }) {
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             <SlidersHorizontal className="ml-2 h-5 w-5 shrink-0 text-gray-400" />
 
+            {/* All */}
             <button
               type="button"
               onClick={() => setSelectedCategory("همه")}
@@ -110,6 +115,7 @@ export default function ShopBrowser({ initialShops = [] }) {
               همه
             </button>
 
+            {/* Categories */}
             {categories.map((category) => {
               const isActive = selectedCategory === category.name;
 
@@ -152,16 +158,41 @@ export default function ShopBrowser({ initialShops = [] }) {
         )}
       </div>
 
-      {/* Loading */}
-      {loading ? (
+      {/* Error */}
+      {error ? (
+        <div className="rounded-3xl border border-red-100 bg-white px-6 py-16 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
+            <Store className="h-7 w-7 text-red-400" />
+          </div>
+
+          <h2 className="mt-5 text-lg font-black text-gray-900">
+            مشکلی پیش آمد
+          </h2>
+
+          <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-gray-500">
+            {error}
+          </p>
+
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="mt-5 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-violet-600"
+          >
+            تلاش مجدد
+          </button>
+        </div>
+      ) : loading ? (
+        /* Loading */
         <div className="rounded-3xl border border-gray-100 bg-white px-6 py-16 text-center">
           <p className="text-sm font-semibold text-gray-500">
             در حال دریافت فروشگاه‌ها...
           </p>
         </div>
       ) : shops.length > 0 ? (
+        /* Shops */
         <ShopGrid shops={shops} />
       ) : (
+        /* Empty */
         <div className="rounded-3xl border border-gray-100 bg-white px-6 py-16 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
             <Store className="h-7 w-7 text-gray-400" />

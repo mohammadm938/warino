@@ -1,20 +1,39 @@
 import Link from "next/link";
+
 import { ArrowRight, MapPin, Package, Star, Store } from "lucide-react";
 
 import Header from "@/app/components/layout/Header";
 import Footer from "@/app/components/layout/Footer";
 import ShopActions from "@/app/shops/components/ShopActions";
-
 import ShopProductBrowser from "./components/ShopProductBrowser";
 
-import { shops } from "@/app/data/shops";
-import { products } from "@/app/data/products";
-import { categories } from "@/app/data/categories";
+import prisma from "@/app/lib/prisma";
 
 export default async function ShopDetailPage({ params }) {
   const { slug } = await params;
 
-  const shop = shops.find((item) => item.slug === slug);
+  let shop = null;
+
+  try {
+    shop = await prisma.shop.findUnique({
+      where: {
+        slug,
+      },
+      include: {
+        category: true,
+        products: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          include: {
+            category: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error("خطا در دریافت فروشگاه:", error);
+  }
 
   if (!shop) {
     return (
@@ -49,13 +68,8 @@ export default async function ShopDetailPage({ params }) {
     );
   }
 
-  const shopProducts = products.filter(
-    (product) => String(product.shopId) === String(shop.id),
-  );
-
-  const category = categories.find(
-    (item) => String(item.id) === String(shop.categoryId),
-  );
+  const shopProducts = shop.products || [];
+  const category = shop.category;
 
   return (
     <>
@@ -144,6 +158,7 @@ export default async function ShopDetailPage({ params }) {
                 <div className="rounded-2xl bg-gray-50 p-4">
                   <div className="flex items-center gap-2 text-gray-400">
                     <Package className="h-4 w-4" />
+
                     <span className="text-xs font-medium">محصولات</span>
                   </div>
 
@@ -155,6 +170,7 @@ export default async function ShopDetailPage({ params }) {
                 <div className="rounded-2xl bg-gray-50 p-4">
                   <div className="flex items-center gap-2 text-gray-400">
                     <MapPin className="h-4 w-4" />
+
                     <span className="text-xs font-medium">موقعیت</span>
                   </div>
 
@@ -166,6 +182,7 @@ export default async function ShopDetailPage({ params }) {
                 <div className="rounded-2xl bg-gray-50 p-4">
                   <div className="flex items-center gap-2 text-gray-400">
                     <Star className="h-4 w-4 fill-current text-amber-500" />
+
                     <span className="text-xs font-medium">امتیاز</span>
                   </div>
 
@@ -177,6 +194,7 @@ export default async function ShopDetailPage({ params }) {
                 <div className="rounded-2xl bg-gray-50 p-4">
                   <div className="flex items-center gap-2 text-gray-400">
                     <Store className="h-4 w-4" />
+
                     <span className="text-xs font-medium">دنبال‌کننده</span>
                   </div>
 

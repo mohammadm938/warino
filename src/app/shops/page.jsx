@@ -1,14 +1,44 @@
 import Link from "next/link";
+
 import { ArrowRight, Store } from "lucide-react";
 
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
-
 import ShopBrowser from "./components/ShopBrowser";
 
-import { shops } from "../data/shops";
+import prisma from "@/app/lib/prisma";
 
-export default function ShopsPage() {
+async function getShops() {
+  try {
+    const shops = await prisma.shop.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        category: true,
+        _count: {
+          select: {
+            products: true,
+          },
+        },
+      },
+    });
+
+    return shops.map((shop) => ({
+      ...shop,
+      productsCount: shop._count.products,
+      _count: undefined,
+    }));
+  } catch (error) {
+    console.error("خطا در دریافت فروشگاه‌ها:", error);
+
+    return [];
+  }
+}
+
+export default async function ShopsPage() {
+  const shops = await getShops();
+
   return (
     <>
       <Header />

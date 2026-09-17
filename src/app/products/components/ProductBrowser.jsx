@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import { Search, SlidersHorizontal, PackageSearch } from "lucide-react";
 
 import ProductGrid from "./ProductGrid";
-
 import { categories } from "../../data/categories";
 
 const sortOptions = [
@@ -25,18 +23,18 @@ const sortOptions = [
 
 export default function ProductBrowser({ initialProducts = [] }) {
   const [products, setProducts] = useState(initialProducts);
-
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("همه");
   const [sort, setSort] = useState("default");
-
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => {
       const fetchProducts = async () => {
         try {
           setLoading(true);
+          setError("");
 
           const params = new URLSearchParams();
 
@@ -70,10 +68,16 @@ export default function ProductBrowser({ initialProducts = [] }) {
 
           const data = await response.json();
 
+          if (!data.success) {
+            throw new Error(data.message || "خطا در دریافت محصولات");
+          }
+
           setProducts(data.products || []);
         } catch (error) {
           console.error("Products fetch error:", error);
+
           setProducts([]);
+          setError("دریافت محصولات با خطا مواجه شد.");
         } finally {
           setLoading(false);
         }
@@ -94,6 +98,7 @@ export default function ProductBrowser({ initialProducts = [] }) {
     setSearch("");
     setSelectedCategory("همه");
     setSort("default");
+    setError("");
   };
 
   return (
@@ -134,6 +139,7 @@ export default function ProductBrowser({ initialProducts = [] }) {
           <div className="flex items-center gap-2 overflow-x-auto border-t border-gray-100 pt-4">
             <SlidersHorizontal className="ml-2 h-5 w-5 shrink-0 text-gray-400" />
 
+            {/* All */}
             <button
               type="button"
               onClick={() => setSelectedCategory("همه")}
@@ -146,6 +152,7 @@ export default function ProductBrowser({ initialProducts = [] }) {
               همه
             </button>
 
+            {/* Categories */}
             {categories.map((category) => {
               const isActive = selectedCategory === category.name;
 
@@ -186,16 +193,41 @@ export default function ProductBrowser({ initialProducts = [] }) {
         )}
       </div>
 
-      {/* Loading */}
-      {loading ? (
+      {/* Error */}
+      {error ? (
+        <div className="rounded-3xl border border-red-100 bg-white px-6 py-16 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50">
+            <PackageSearch className="h-7 w-7 text-red-400" />
+          </div>
+
+          <h2 className="mt-5 text-lg font-black text-gray-900">
+            مشکلی پیش آمد
+          </h2>
+
+          <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-gray-500">
+            {error}
+          </p>
+
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="mt-5 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-violet-600"
+          >
+            تلاش مجدد
+          </button>
+        </div>
+      ) : loading ? (
+        /* Loading */
         <div className="rounded-3xl border border-gray-100 bg-white px-6 py-16 text-center">
           <p className="text-sm font-semibold text-gray-500">
             در حال دریافت محصولات...
           </p>
         </div>
       ) : products.length > 0 ? (
+        /* Products */
         <ProductGrid products={products} />
       ) : (
+        /* Empty */
         <div className="rounded-3xl border border-gray-100 bg-white px-6 py-16 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
             <PackageSearch className="h-7 w-7 text-gray-400" />
